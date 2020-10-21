@@ -1,0 +1,11 @@
+{
+    "rust-analyzer.checkOnSave.overrideCommand": [
+        "xargo",
+        "check",
+        "--workspace",
+        "--message-format=json",
+        "--all-features"
+    ],
+    "rust-analyzer.updates.channel": "stable",
+    "python.pythonPath": "C:\\Users\\gclar\\AppData\\Local\\Programs\\Python\\Python37\\python.exe",
+}
