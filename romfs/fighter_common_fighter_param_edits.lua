@@ -16,7 +16,7 @@ do
     }
 	
 	local all_char_mods = { -- all changes that apply for every character
-		escape_air_landing_frame = 40
+		--escape_air_landing_frame = 40
 	}
 
 	--	convert the indeces of the table from strings to their hash

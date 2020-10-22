@@ -115,7 +115,8 @@ unsafe fn actions_out_of_js(boma: &mut app::BattleObjectModuleAccessor, status_k
 }
 
 unsafe fn shield_stops(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32) {
-    if ( status_kind == *FIGHTER_STATUS_KIND_DASH || status_kind == *FIGHTER_STATUS_KIND_TURN_DASH ) && compare_cat(ControlModule::get_pad_flag(boma), *FIGHTER_PAD_FLAG_GUARD_TRIGGER) 
+    if ( status_kind == *FIGHTER_STATUS_KIND_DASH || status_kind == *FIGHTER_STATUS_KIND_TURN_DASH ) && 
+        ( ControlModule::check_button_trigger(boma, *CONTROL_PAD_BUTTON_GUARD) && ControlModule::check_button_off(boma, *CONTROL_PAD_BUTTON_CATCH) )
     {
         StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_GUARD_ON, true);
         ControlModule::clear_command(boma, true);

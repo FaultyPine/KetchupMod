@@ -7,10 +7,9 @@ do
     local root = assert(Lib:open("fighter/common/param/common.prc"))
 
 	local mods = {
-        precede = 3,
-		precede_extension = 0,
         dash_escape_frame = 1,
-        turn_dash_frame = -1
+        turn_dash_frame = -1,
+		landing_frame_escape_air = 15
 	}
 	--	convert the indeces of the table from strings to their hash
     do
