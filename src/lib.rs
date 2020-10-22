@@ -41,8 +41,8 @@ pub fn main() {
         ecbs::get_rhombus_hook,
         init_settings::init_settings_hook,
         edge_slipoffs::correct_hook,
-        //get_param::get_param_float_middle, //leaving this commented out b/c it has a version-specific hook. Once 9.X.X stops getting little bugfixes we can use this without worrying about crashes
-        //get_command_flag_cat::get_command_flag_cat_hook
+        get_param::get_param_float_middle,
+        get_command_flag_cat::get_command_flag_cat_hook
     );
 
     sys_line::install();

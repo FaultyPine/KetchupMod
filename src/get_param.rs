@@ -1,8 +1,8 @@
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 
-//9.0.0 -> 0x4dae10
-#[skyline::hook(offset=0x4dae10)] //9.0.0
+//9.0.0/9.0.1 (same offset apparently) -> 0x4dae10
+#[skyline::hook(offset=0x4dae10)]
 pub unsafe fn get_param_float_middle(x0: u64, param_type: u64, param_hash: u64) -> f32 {
     let boma = &mut *(*((x0 as *mut u64).offset(1)) as *mut app::BattleObjectModuleAccessor);
     let fighter_kind = app::utility::get_kind(boma);
