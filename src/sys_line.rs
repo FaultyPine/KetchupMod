@@ -124,13 +124,20 @@ unsafe fn shield_stops(boma: &mut app::BattleObjectModuleAccessor, status_kind: 
 }
 
 unsafe fn shield_drops(boma: &mut app::BattleObjectModuleAccessor, cat2: i32, status_kind: i32, fighter_kind: i32) {
-    if ![*FIGHTER_KIND_INKLING, *FIGHTER_KIND_PICKEL].contains(&fighter_kind) { // if not steve or inkling
-        if status_kind == *FIGHTER_STATUS_KIND_GUARD || status_kind == *FIGHTER_STATUS_KIND_GUARD_ON {
-            let is_input_shield_drop = compare_cat(ControlModule::get_pad_flag(boma), *FIGHTER_PAD_FLAG_SPECIAL_TRIGGER) ||
-                                            compare_cat(cat2, *FIGHTER_PAD_CMD_CAT2_FLAG_GUARD_TO_PASS);
-            if is_input_shield_drop && GroundModule::is_passable_ground(boma) {
-                StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_PASS, true);
-            }
+    let mut is_no_special_button_pass_char = false;
+    if [*FIGHTER_KIND_INKLING, *FIGHTER_KIND_PICKEL].contains(&fighter_kind) { // characters that shouldn't be able to shield drop with shield + special button
+        is_no_special_button_pass_char = true;
+    }
+
+    if status_kind == *FIGHTER_STATUS_KIND_GUARD || status_kind == *FIGHTER_STATUS_KIND_GUARD_ON {
+
+        let is_input_shield_drop = 
+        (compare_cat(ControlModule::get_pad_flag(boma), *FIGHTER_PAD_FLAG_SPECIAL_TRIGGER) && !is_no_special_button_pass_char)
+        ||
+        compare_cat(cat2, *FIGHTER_PAD_CMD_CAT2_FLAG_GUARD_TO_PASS);
+
+        if is_input_shield_drop && GroundModule::is_passable_ground(boma) {
+            StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_PASS, true);
         }
     }
 }
