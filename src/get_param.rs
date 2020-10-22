@@ -23,9 +23,9 @@ pub unsafe fn get_param_float_middle(x0: u64, param_type: u64, param_hash: u64) 
     if param_type == hash40("param_motion") { // fighter_param_motion
         if param_hash == hash40("landing_frame_escape_air_slide") {
             if MotionModule::frame(boma) > 3.0 { // reduces landing lag on wavedashes, but keeps LL high for airdodges from higher up
-                return 20;
+                return 20.0;
             }
-            return 10;
+            return 10.0;
         }
     }
 
