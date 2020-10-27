@@ -19,7 +19,7 @@ pub unsafe fn get_param_float_middle(x0: u64, param_type: u64, param_hash: u64) 
 
 
         if param_hash == hash40("landing_frame_escape_air_slide_max") { //directional airdodge landing lag
-            if MotionModule::frame(boma) > 4.0 { // reduces landing lag on wavedashes, but keeps LL high for airdodges from higher up
+            if MotionModule::frame(boma) > 8.0 { // reduces landing lag on wavedashes, but keeps LL high for airdodges from higher up
                 return 20.0; // "distanced" airdodge
             }
             return 10.0; // ""perfect"" airdodge (wavedash)

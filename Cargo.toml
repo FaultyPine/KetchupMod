@@ -1,6 +1,6 @@
 [package]
 name = "KetchupMod"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Bruh <your@mom.com>"]
 edition = "2018"
 
