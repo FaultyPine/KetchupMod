@@ -32,7 +32,7 @@ pub unsafe fn status_attack_air_hook(fighter: &mut L2CFighterCommon, param_1: L2
 
         /*      Shorthop aerial macro and "bair stick flick" fix     */
     if WorkModule::get_int(boma, *FIGHTER_INSTANCE_WORK_ID_INT_FRAME_IN_AIR) <= 1 && 
-        StatusModule::prev_status_kind(boma, 1) == *FIGHTER_STATUS_KIND_JUMP_SQUAT && !is_speed_backward { //if you used the shorthop aerial macro
+        StatusModule::prev_status_kind(boma, 1) == *FIGHTER_STATUS_KIND_JUMP_SQUAT { //if you used the shorthop aerial macro
         new_speed = calc_melee_momentum(boma, true);
     }
 
@@ -50,7 +50,7 @@ pub unsafe fn status_attack_air_hook(fighter: &mut L2CFighterCommon, param_1: L2
 //called in moveset_edits in sys_line_system_control_fighter.rs
 use crate::vars::custom_vars::{CURR_MOMENTUM, RAR_LENIENCY};
 pub unsafe fn momentum_transfer_helper(lua_state: u64, l2c_agent: &mut L2CAgent, boma: &mut app::BattleObjectModuleAccessor, status_kind: i32, situation_kind: i32, curr_frame: f32, fighter_kind: i32) {
-    if [*FIGHTER_STATUS_KIND_JUMP_SQUAT, *FIGHTER_STATUS_KIND_JUMP, *FIGHTER_STATUS_KIND_FALL].contains(&status_kind) {
+    if [*FIGHTER_STATUS_KIND_JUMP_SQUAT, *FIGHTER_STATUS_KIND_JUMP, *FIGHTER_STATUS_KIND_FALL].contains(&status_kind) || situation_kind == *SITUATION_KIND_AIR {
         CURR_MOMENTUM[get_player_number(boma)] = KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN); 
     }
 

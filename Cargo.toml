@@ -1,6 +1,6 @@
 [package]
 name = "KetchupMod"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Bruh <your@mom.com>"]
 edition = "2018"
 
@@ -18,6 +18,7 @@ crate-type = ["cdylib"]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
 skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
 acmd = { git = "https://github.com/ultimate-research/skyline-acmd.git" }
+skyline-update = { git = "https://github.com/skyline-rs/skyline-update" }
 
 [profile.dev]
 panic = "abort"
