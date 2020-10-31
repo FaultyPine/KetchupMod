@@ -26,13 +26,14 @@ pub unsafe fn status_attack_air_hook(fighter: &mut L2CFighterCommon, param_1: L2
     let boma = app::sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     let mut l2c_agent = L2CAgent::new(fighter.lua_state_agent);
     let is_speed_backward = KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN) * PostureModule::lr(boma) < 0.0;
-    let prev_status_check = [*FIGHTER_STATUS_KIND_FALL, *FIGHTER_STATUS_KIND_JUMP, *FIGHTER_STATUS_KIND_JUMP_SQUAT].contains(&StatusModule::prev_status_kind(boma, 0));    
+    let prev_status_check = [*FIGHTER_STATUS_KIND_JUMP, *FIGHTER_STATUS_KIND_JUMP_SQUAT].contains(&StatusModule::prev_status_kind(boma, 0))
+                                && ![*FIGHTER_STATUS_KIND_PASS, *FIGHTER_STATUS_KIND_LANDING].contains(&StatusModule::prev_status_kind(boma, 0));    
     let mut new_speed = CURR_MOMENTUM[get_player_number(boma)];
 
 
         /*      Shorthop aerial macro and "bair stick flick" fix     */
     if WorkModule::get_int(boma, *FIGHTER_INSTANCE_WORK_ID_INT_FRAME_IN_AIR) <= 1 && 
-        StatusModule::prev_status_kind(boma, 1) == *FIGHTER_STATUS_KIND_JUMP_SQUAT { //if you used the shorthop aerial macro
+        StatusModule::prev_status_kind(boma, 1) == *FIGHTER_STATUS_KIND_JUMP_SQUAT && ![*FIGHTER_STATUS_KIND_PASS, *FIGHTER_STATUS_KIND_FALL].contains(&StatusModule::prev_status_kind(boma, 0)) { //if you used the shorthop aerial macro
         new_speed = calc_melee_momentum(boma, true);
     }
 
