@@ -102,14 +102,16 @@ unsafe fn actions_out_of_js(boma: &mut app::BattleObjectModuleAccessor, status_k
         // if you are in js, input grab, and you weren't previously shielding - transition to grab
         if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH) 
            && ![*FIGHTER_STATUS_KIND_GUARD, *FIGHTER_STATUS_KIND_GUARD_ON, *FIGHTER_STATUS_KIND_GUARD_OFF].contains(&StatusModule::prev_status_kind(boma, 0)) 
-           
+           && !ItemModule::is_have_item(boma, 0)
         {
             WorkModule::set_flag(boma, true, *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_ATTACK_DISABLE_MINI_JUMP_ATTACK);
             StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_CATCH, true);
         }
 
         // if you input airdodge and stick is below the netural y position - transition to airdodge
-        else if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE) && ControlModule::get_stick_y(boma) <= 0.0 
+        else if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE) 
+                && ControlModule::get_stick_y(boma) <= 0.0 
+                && !compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH) 
         {
             StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_ESCAPE_AIR, true);
         }
