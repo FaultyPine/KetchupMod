@@ -5,7 +5,6 @@
 
 mod momentum_transfer;
 mod sys_line;
-mod ecbs;
 mod init_settings;
 mod edge_slipoffs;
 mod status_script_hooks;
@@ -49,8 +48,6 @@ pub fn main() {
     // main hooks
     skyline::install_hooks!(
         momentum_transfer::change_kinetic_hook,
-        ecbs::get_ground_correct_kind_air_trans_hook,
-        ecbs::get_rhombus_hook,
         init_settings::init_settings_hook,
         edge_slipoffs::correct_hook,
         get_param::get_param_float_middle,

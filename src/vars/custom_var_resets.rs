@@ -167,7 +167,7 @@ pub unsafe fn reset(boma: &mut app::BattleObjectModuleAccessor) {
     // --------------------------------------------------------------
 
     //General var resets
-    ECY_Y_OFFSETS = [0.0;8];
+    //ECY_Y_OFFSETS = [0.0;8];
 
 
 

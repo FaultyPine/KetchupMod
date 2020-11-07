@@ -7,7 +7,7 @@
 //       ----   General Vars  -------------
 
 //ecbs
-pub static mut ECY_Y_OFFSETS: [f32;8] = [0.;8];
+//pub static mut ECY_Y_OFFSETS: [f32;8] = [0.;8];
 //momentum
 pub static mut CURR_MOMENTUM: [f32;8] = [0.0;8];
 pub static mut RAR_LENIENCY: [f32;8] = [0.0;8];

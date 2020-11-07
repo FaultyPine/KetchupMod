@@ -1,7 +1,7 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::{L2CAgent, lua_const::*};
 use smash::lua2cpp::L2CFighterCommon;
-use crate::{utils::*, ecbs};
+use crate::utils::*;
 
 pub fn install() {
     acmd::add_custom_hooks!(sys_line_system_control_fighter_hook);
@@ -48,8 +48,7 @@ unsafe fn fighter_engine_edits(lua_state: u64, mut l2c_agent: &mut L2CAgent, bom
     actions_out_of_js(boma, status_kind, situation_kind, cat1);
     shield_stops(boma, status_kind);
     shield_drops(boma, cat2, status_kind, fighter_kind);
-    ecbs::fixed_ecbs(boma, status_kind, situation_kind, fighter_kind, frame);
-    single_button_smash_attacks(boma, status_kind, stick_angle);
+    //single_button_smash_attacks(boma, status_kind, stick_angle, situation_kind);
 }
 
 
@@ -147,7 +146,7 @@ unsafe fn shield_drops(boma: &mut app::BattleObjectModuleAccessor, cat2: i32, st
     }
 }
 
-const SMASH_ATTACK_STATUSES: [smash::lib::LuaConst;10] = [
+const PREVENT_SMASH_ATTACK_STATUSES: [smash::lib::LuaConst;10] = [
     FIGHTER_STATUS_KIND_ATTACK_S4,
     FIGHTER_STATUS_KIND_ATTACK_HI4,
     FIGHTER_STATUS_KIND_ATTACK_LW4,
@@ -161,22 +160,23 @@ const SMASH_ATTACK_STATUSES: [smash::lib::LuaConst;10] = [
 ];
 const SINGLE_BUTTON_SMASH_ATTACK_PAD_BUTTON: smash::lib::LuaConst = CONTROL_PAD_BUTTON_APPEAL_HI;
 const SINGLE_BUTTON_SMASH_ATTACK_STICK_FLICK_THRESHOLD: i32 = 5; // max num of "flick frames" (# of frames since stick was displaced from neutral position) (higher = more lenient, lower = less lenient)
-unsafe fn single_button_smash_attacks(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32, stick_angle: f32) {
-    if !SMASH_ATTACK_STATUSES.iter().any(|x| *x == status_kind) && ControlModule::check_button_trigger(boma, *SINGLE_BUTTON_SMASH_ATTACK_PAD_BUTTON)
+unsafe fn single_button_smash_attacks(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32, stick_angle: f32, situation_kind: i32) {
+    if !PREVENT_SMASH_ATTACK_STATUSES.iter().any(|x| *x == status_kind) && ControlModule::check_button_trigger(boma, *SINGLE_BUTTON_SMASH_ATTACK_PAD_BUTTON)
        && (ControlModule::get_flick_x(boma) <= SINGLE_BUTTON_SMASH_ATTACK_STICK_FLICK_THRESHOLD || ControlModule::get_flick_y(boma) <= SINGLE_BUTTON_SMASH_ATTACK_STICK_FLICK_THRESHOLD )
+       && situation_kind == *SITUATION_KIND_GROUND && CancelModule::is_enable_cancel(boma)
     {
         match stick_angle {
             x if (-0.75..=0.75).contains(&x) => { //right
-                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_S4_HOLD, true);
+                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_S4_START, true);
             }
             x if (0.75..=2.25).contains(&x) => { //up
-                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_HI4_HOLD, true);
+                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_HI4_START, true);
             }
             x if (2.25..=3.15).contains(&x) || (-3.15..=-2.25).contains(&x) => { //left
-                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_S4_HOLD, true);
+                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_S4_START, true);
             }
             x if (-2.25..=-0.75).contains(&x) => { //down
-                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_LW4_HOLD, true);
+                StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_ATTACK_LW4_START, true);
             }
             _ => (),
         }
