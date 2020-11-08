@@ -41,6 +41,7 @@ unsafe fn fighter_engine_edits(lua_state: u64, mut l2c_agent: &mut L2CAgent, bom
     let cat1 = ControlModule::get_command_flag_cat(boma, 0);
     let cat2 = ControlModule::get_command_flag_cat(boma, 1);
     let stick_angle = ControlModule::get_stick_angle(boma);
+    let stick_value_x = ControlModule::get_stick_x(boma);
     let entry_id = get_player_number(boma);
 
     crate::momentum_transfer::momentum_transfer_helper(lua_state, &mut l2c_agent, boma, status_kind, situation_kind, frame, fighter_kind);
@@ -49,6 +50,7 @@ unsafe fn fighter_engine_edits(lua_state: u64, mut l2c_agent: &mut L2CAgent, bom
     shield_stops(boma, status_kind);
     shield_drops(boma, cat2, status_kind, fighter_kind);
     //single_button_smash_attacks(boma, status_kind, stick_angle, situation_kind);
+    pivots(boma, status_kind, frame, stick_value_x);
 }
 
 
@@ -127,6 +129,8 @@ unsafe fn shield_stops(boma: &mut app::BattleObjectModuleAccessor, status_kind: 
     }
 }
 
+const SHIELD_DROP_FLICK_SENS: i32 = 11; // num frames since stick was displaced in the y axis. Lower num = more "intense" flick
+const SHIELD_DROP_STICK_THRESHOLD: f32 = -0.3; // "highest" position stick can be (scale of -1 - 1 ... -1 = all the way down, 1 = all the way up)
 unsafe fn shield_drops(boma: &mut app::BattleObjectModuleAccessor, cat2: i32, status_kind: i32, fighter_kind: i32) {
     let mut is_no_special_button_pass_char = false;
     if [*FIGHTER_KIND_INKLING, *FIGHTER_KIND_PICKEL].contains(&fighter_kind) { // characters that shouldn't be able to shield drop with shield + special button
@@ -138,7 +142,10 @@ unsafe fn shield_drops(boma: &mut app::BattleObjectModuleAccessor, cat2: i32, st
         let is_input_shield_drop = 
         (compare_cat(ControlModule::get_pad_flag(boma), *FIGHTER_PAD_FLAG_SPECIAL_TRIGGER) && !is_no_special_button_pass_char)
         ||
-        compare_cat(cat2, *FIGHTER_PAD_CMD_CAT2_FLAG_GUARD_TO_PASS);
+        ( 
+            compare_cat(cat2, *FIGHTER_PAD_CMD_CAT2_FLAG_GUARD_TO_PASS) 
+            || (ControlModule::get_flick_y(boma) <= SHIELD_DROP_FLICK_SENS && ControlModule::get_stick_y(boma) <= SHIELD_DROP_STICK_THRESHOLD)
+        );
 
         if is_input_shield_drop && GroundModule::is_passable_ground(boma) {
             StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_PASS, true);
@@ -180,5 +187,21 @@ unsafe fn single_button_smash_attacks(boma: &mut app::BattleObjectModuleAccessor
             }
             _ => (),
         }
+    }
+}
+
+
+const PIVOT_STICK_SNAPBACK_WINDOW: f32 = 1.0;
+const LIL_BOOSTIE: smash::phx::Vector3f = smash::phx::Vector3f {x: 1.6, y: 0.0, z: 0.0};
+unsafe fn pivots(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32, curr_frame: f32, stick_value_x: f32){
+    if status_kind == *FIGHTER_STATUS_KIND_TURN_DASH 
+        && curr_frame <= PIVOT_STICK_SNAPBACK_WINDOW && stick_value_x == 0.0 
+        && [*FIGHTER_STATUS_KIND_TURN_DASH, *FIGHTER_STATUS_KIND_DASH].contains(&StatusModule::prev_status_kind(boma, 0)) 
+        && ![*FIGHTER_STATUS_KIND_WAIT, *FIGHTER_STATUS_KIND_TURN].contains(&StatusModule::prev_status_kind(boma, 1))
+    {
+        PostureModule::reverse_lr(boma);
+        StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_TURN,true);
+        KineticModule::clear_speed_all(boma);
+        KineticModule::add_speed(boma, &LIL_BOOSTIE);
     }
 }

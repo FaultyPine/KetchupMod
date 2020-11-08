@@ -1,5 +1,5 @@
 use smash::app;
-use crate::vars::custom_vars::*;
+//use crate::vars::custom_vars::*;
 
 //Runs on game/match start (including homerun contest start, training mode start, training mode reset, etc)
 pub unsafe fn reset(boma: &mut app::BattleObjectModuleAccessor) {
