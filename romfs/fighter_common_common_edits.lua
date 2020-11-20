@@ -7,7 +7,6 @@ do
     local root = assert(Lib:open("fighter/common/param/common.prc"))
 
 	local mods = {
-        dash_escape_frame = 1,
         turn_dash_frame = -1,
 		landing_frame_escape_air = 15
 	}
