@@ -2,7 +2,7 @@ use smash::app::{self, lua_bind::*};
 use smash::hash40;
 
 //get_param_int's offset is always 0x40 less than get_param_float's
-static INT_OFFSET: isize = 0x4dae40; //9.0.2
+static INT_OFFSET: isize = 0x4def50; //10.0.0
 
 #[skyline::hook(offset=INT_OFFSET+0x40)]
 pub unsafe fn get_param_float_middle(x0: u64, param_type: u64, param_hash: u64) -> f32 {
