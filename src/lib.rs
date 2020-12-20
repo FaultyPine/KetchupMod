@@ -33,11 +33,13 @@ fn nro_main(nro: &skyline::nro::NroInfo) {
 pub fn main() {
 
     // Check if an update is available
+    /*
     println!("[KetchupMod] Checking update server...");
     if skyline_update::check_update("3.17.96.120".parse().unwrap(), "KetchupMod", env!("CARGO_PKG_VERSION"), false) {
         println!("[KetchupMod] Installed new update!");
         skyline::nn::oe::RestartProgramNoArgs();
     } else { println!("[KetchupMod] Local and server versions match. No update needed"); }
+    */
     
     println!("========= KetchupMod Ver. {} =========", env!("CARGO_PKG_VERSION"));
 
