@@ -137,6 +137,15 @@ unsafe fn shield_drops(boma: &mut app::BattleObjectModuleAccessor, cat2: i32, st
         is_no_special_button_pass_char = true;
     }
 
+unsafe fn jump_cancel_grab(boma: &mut BattleObjectModuleAccessor, cat1: i32, status_kind: i32, fighter_kind: i32) {
+    if status_kind == *FIGHTER_STATUS_KIND_JUMP_SQUAT {
+        if hdr::compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH) {
+            WorkModule::on_flag(boma, *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_ATTACK_DISABLE_MINI_JUMP_ATTACK);
+            StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_CATCH, true);
+        }
+    }
+}
+
     if status_kind == *FIGHTER_STATUS_KIND_GUARD || status_kind == *FIGHTER_STATUS_KIND_GUARD_ON {
 
         let is_input_shield_drop = 
