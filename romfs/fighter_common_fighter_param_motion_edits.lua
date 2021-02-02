@@ -9,8 +9,8 @@ do
     local t = assert(root:by_hash(hash("fighter_param_motion_table"))):to_table()
 
     local char_mods = { -- all character-specific changes go here (fwiw, these take priority over all_char_mods)
-        mario = {
-            --escape_air_cancel_frame = 999
+        littlemac = {
+            escape_air_slide_speed = 4.2,
         },
 		
     }
@@ -19,6 +19,9 @@ do
         escape_air_slide_back_end_frame = 0,
         escape_air_slide_back_distance = 1,
         landing_frame_escape_air_slide_max = 10,
+        escape_air_slide_penalty_hit_xlu_frame = 3,
+        escape_air_slide_penalty_hit_normal_frame = 19,
+        escape_air_slide_penalty_speed = 4.2,
 	}
 
 	--	convert the indeces of the table from strings to their hash
