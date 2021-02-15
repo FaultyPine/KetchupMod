@@ -1,5 +1,5 @@
 use smash::app;
-use super::custom_vars::*;
+//use crate::vars::custom_vars::*;
 
 //Runs on game/match start (including homerun contest start, training mode start, training mode reset, etc)
 pub unsafe fn reset(boma: &mut app::BattleObjectModuleAccessor) {
@@ -168,16 +168,7 @@ pub unsafe fn reset(boma: &mut app::BattleObjectModuleAccessor) {
 
     //General var resets
     //ECY_Y_OFFSETS = [0.0;8];
-    curr_momentum          = [0.0;8];
-    curr_momentum_specials = [0.0;8];
-    js_vel                 = [0.0;8];
-    ground_vel             = [0.0;8];
-    base_dash_speed        = [0.0;8];
-    base_run_speed_max     = [0.0;8];
-    rar_leniency           = [0.0;8];
-    irar_window            = [false;8];
-    irar_jumpsquat         = [false;8];
-    sh_macro               = [false;8];
+
 
 
 }

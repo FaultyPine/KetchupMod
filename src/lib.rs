@@ -2,12 +2,8 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 #![allow(unused_variables)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(non_upper_case_globals)]
 
 mod momentum_transfer;
-mod momentum_transfer_line;
 mod sys_line;
 mod init_settings;
 mod edge_slipoffs;
@@ -35,8 +31,19 @@ fn nro_main(nro: &skyline::nro::NroInfo) {
 
 #[skyline::main(name = "KetchupMod")]
 pub fn main() {
+
+    // Check if an update is available
+    /*
+    println!("[KetchupMod] Checking update server...");
+    if skyline_update::check_update("3.17.96.120".parse().unwrap(), "KetchupMod", env!("CARGO_PKG_VERSION"), false) {
+        println!("[KetchupMod] Installed new update!");
+        skyline::nn::oe::RestartProgramNoArgs();
+    } else { println!("[KetchupMod] Local and server versions match. No update needed"); }
+    */
     
     println!("========= KetchupMod Ver. {} =========", env!("CARGO_PKG_VERSION"));
+
+
 
     skyline::nro::add_hook(nro_main).unwrap();
 
