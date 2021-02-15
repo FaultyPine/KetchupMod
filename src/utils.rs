@@ -18,7 +18,7 @@ pub unsafe fn clamp(x: f32, min: f32, max: f32) -> f32 {
 
 
 pub unsafe fn clear_buffered_action(flag: i32, cmd: i32) -> i32 {
-    return flag & !(flag & cmd);
+    return flag & !(1 << cmd);
 }
 
 pub unsafe fn add_buffered_action(flag: i32, cmd: i32) -> i32 {

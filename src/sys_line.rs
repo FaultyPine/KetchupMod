@@ -1,6 +1,7 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::{L2CAgent, lua_const::*};
 use smash::lua2cpp::L2CFighterCommon;
+use smash::hash40;
 use crate::utils::*;
 
 pub fn install() {
@@ -32,7 +33,7 @@ pub fn sys_line_system_control_fighter_hook(fighter: &mut L2CFighterCommon) /*->
 
 // Note - if character-specific moveset changes are gonna happen... PLEASE use a jumptable instead of silly if/else chaining
 
-unsafe fn fighter_engine_edits(lua_state: u64, mut l2c_agent: &mut L2CAgent, boma: &mut app::BattleObjectModuleAccessor) {
+unsafe fn fighter_engine_edits(lua_state: u64, l2c_agent: &mut L2CAgent, boma: &mut app::BattleObjectModuleAccessor) {
     
     let status_kind = StatusModule::status_kind(boma);
     let situation_kind = StatusModule::situation_kind(boma);
@@ -44,7 +45,7 @@ unsafe fn fighter_engine_edits(lua_state: u64, mut l2c_agent: &mut L2CAgent, bom
     let stick_value_x = ControlModule::get_stick_x(boma);
     let entry_id = get_player_number(boma);
 
-    crate::momentum_transfer::momentum_transfer_helper(lua_state, &mut l2c_agent, boma, status_kind, situation_kind, frame, fighter_kind);
+    crate::momentum_transfer_line::run(lua_state, l2c_agent, boma, status_kind, situation_kind, fighter_kind);
 
     actions_out_of_js(boma, status_kind, situation_kind, cat1);
     shield_stops(boma, status_kind);

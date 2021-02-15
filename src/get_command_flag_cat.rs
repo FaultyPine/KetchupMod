@@ -11,7 +11,9 @@ pub unsafe fn get_command_flag_cat_hook(boma: &mut app::BattleObjectModuleAccess
         let status_kind = StatusModule::status_kind(boma);
         let situation_kind = StatusModule::situation_kind(boma);
 
-        if compare_cat(cat, *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE) {
+        if compare_cat(cat, *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE) 
+        && StatusModule::prev_status_kind(boma, 0) != *FIGHTER_STATUS_KIND_LANDING 
+        {
             cat = clear_buffered_action(cat, *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE);
         }
         if compare_cat(cat, *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B) {
