@@ -1,4 +1,4 @@
-Lib.open_dir = "C:/Users/gclar/Desktop/Modding/ArcCross/root" -- absolute path to your ArcCross\root folder
+Lib.open_dir = "C:/Users/gclar/Desktop/param_b0000" -- absolute path to your ArcCross\root folder
 Lib.save_dir = "KetchupModRomfs" -- can specify absolute or relative paths
 
 local start = clock()
