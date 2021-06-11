@@ -8,6 +8,8 @@ mod sys_line;
 mod init_settings;
 mod edge_slipoffs;
 mod status_script_hooks;
+mod airdodge;
+mod jumpsquat;
 mod get_command_flag_cat;
 mod get_param;
 
@@ -22,7 +24,9 @@ fn nro_main(nro: &skyline::nro::NroInfo) {
             skyline::install_hooks!(
                 momentum_transfer::status_jump_sub_hook,
                 momentum_transfer::status_attack_air_hook,
-                status_script_hooks::status_turndash_sub_hook
+                status_script_hooks::status_turndash_sub_hook,
+                status_script_hooks::status_turndash_main_hook,
+                status_script_hooks::status_Jump_Main
             );
         }
         _ => (),
@@ -40,9 +44,8 @@ pub fn main() {
         skyline::nn::oe::RestartProgramNoArgs();
     } else { println!("[KetchupMod] Local and server versions match. No update needed"); }
     */
-    
-    println!("========= KetchupMod Ver. {} =========", env!("CARGO_PKG_VERSION"));
 
+    println!("========= KetchupMod Ver. {} =========", env!("CARGO_PKG_VERSION"));
 
 
     skyline::nro::add_hook(nro_main).unwrap();
@@ -53,8 +56,11 @@ pub fn main() {
         init_settings::init_settings_hook,
         edge_slipoffs::correct_hook,
         get_param::get_param_float_middle,
-        get_command_flag_cat::get_command_flag_cat_hook
+        get_command_flag_cat::get_command_flag_cat_hook,
     );
 
     sys_line::install();
+    jumpsquat::install();
+    airdodge::install();
+    hdr_core::init();
 }

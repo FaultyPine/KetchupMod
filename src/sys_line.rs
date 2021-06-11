@@ -1,26 +1,30 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::{L2CAgent, lua_const::*};
+use smash::hash40;
 use smash::lua2cpp::L2CFighterCommon;
 use crate::utils::*;
 
+use crate::vars::custom_vars::*;
+
 pub fn install() {
-    acmd::add_custom_hooks!(sys_line_system_control_fighter_hook);
+    smashline::install_agent_frames!(sys_line_system_control_fighter_hook);
 }
 
 
 //#[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sys_line_system_control_fighter)]
-pub fn sys_line_system_control_fighter_hook(fighter: &mut L2CFighterCommon) /*-> L2CValue*/ {
+#[smashline::fighter_frame(global)]
+pub unsafe fn sys_line_system_control_fighter_hook(fighter: &mut L2CFighterCommon) /*-> L2CValue*/ {
     unsafe {
         let boma = app::sv_system::battle_object_module_accessor(fighter.lua_state_agent);
         let mut l2c_agent = L2CAgent::new(fighter.lua_state_agent);
         let lua_state = fighter.lua_state_agent;
         let battle_object_category = app::utility::get_category(boma);
-    
-    
+
+
         if battle_object_category == *BATTLE_OBJECT_CATEGORY_FIGHTER {
 
             handle_game_resets(boma, fighter);
-            fighter_engine_edits(lua_state, &mut l2c_agent, boma)
+            fighter_engine_edits(fighter, lua_state, &mut l2c_agent, boma)
 
         }
     }
@@ -32,11 +36,11 @@ pub fn sys_line_system_control_fighter_hook(fighter: &mut L2CFighterCommon) /*->
 
 // Note - if character-specific moveset changes are gonna happen... PLEASE use a jumptable instead of silly if/else chaining
 
-unsafe fn fighter_engine_edits(lua_state: u64, mut l2c_agent: &mut L2CAgent, boma: &mut app::BattleObjectModuleAccessor) {
-    
+unsafe fn fighter_engine_edits(fighter: &mut L2CFighterCommon, lua_state: u64, mut l2c_agent: &mut L2CAgent, boma: &mut app::BattleObjectModuleAccessor) {
+
     let status_kind = StatusModule::status_kind(boma);
     let situation_kind = StatusModule::situation_kind(boma);
-    let frame = MotionModule::frame(boma);
+    let curr_frame = MotionModule::frame(boma);
     let fighter_kind = app::utility::get_kind(boma);
     let cat1 = ControlModule::get_command_flag_cat(boma, 0);
     let cat2 = ControlModule::get_command_flag_cat(boma, 1);
@@ -44,13 +48,15 @@ unsafe fn fighter_engine_edits(lua_state: u64, mut l2c_agent: &mut L2CAgent, bom
     let stick_value_x = ControlModule::get_stick_x(boma);
     let entry_id = get_player_number(boma);
 
-    crate::momentum_transfer::momentum_transfer_helper(lua_state, &mut l2c_agent, boma, status_kind, situation_kind, frame, fighter_kind);
+    crate::momentum_transfer::momentum_transfer_helper(fighter, lua_state, &mut l2c_agent, boma, status_kind, situation_kind, fighter_kind, curr_frame);
+    crate::momentum_transfer::jumpsquat_correction(fighter, boma, status_kind, situation_kind, curr_frame);
+    crate::momentum_transfer::additional_momentum_transfer_moves(fighter, lua_state, l2c_agent, boma, status_kind, situation_kind, fighter_kind, curr_frame);
 
     actions_out_of_js(boma, status_kind, situation_kind, cat1);
     shield_stops(boma, status_kind);
     shield_drops(boma, cat2, status_kind, fighter_kind);
     //single_button_smash_attacks(boma, status_kind, stick_angle, situation_kind);
-    pivots(boma, status_kind, frame, stick_value_x);
+    pivots(boma, status_kind, curr_frame, stick_value_x);
 }
 
 
@@ -63,7 +69,7 @@ by creating two statics and comparing them we can determine when the game switch
 where you don't have control of the character (menus, loading, even training mode reset, anything that isn't technically "ingame")
 we can determine the "start" (or end) of a match/game/gameplay session
 
-In addition, is_ready go returns false for a few frames at the beginning of loading into training mode. It also returns false for the duration of the 
+In addition, is_ready go returns false for a few frames at the beginning of loading into training mode. It also returns false for the duration of the
 Ready.... Go! sequence at the beginning of a match.
 
 */
@@ -75,7 +81,7 @@ unsafe fn handle_game_resets(boma: &mut app::BattleObjectModuleAccessor, fighter
     IS_READY_GO_CURR = is_ready_go();
 
     //THIS BLOCK RUNS WHEN A "SESSION" ENDS
-    if !IS_READY_GO_CURR && LAST_READY_GO 
+    if !IS_READY_GO_CURR && LAST_READY_GO
     {
         //println!("----------------GAME END--------------");
     }
@@ -84,6 +90,7 @@ unsafe fn handle_game_resets(boma: &mut app::BattleObjectModuleAccessor, fighter
     {
         //println!("----------------GAME START--------------");
         crate::vars::custom_var_resets::reset(boma);
+        jump_speed_ratio[get_player_number(boma)] = (WorkModule::get_param_float(boma, hash40("jump_speed_x_max"), 0) / WorkModule::get_param_float(boma, hash40("run_speed_max"), 0));
 
     }
     LAST_READY_GO = IS_READY_GO_CURR;
@@ -97,12 +104,12 @@ unsafe fn handle_game_resets(boma: &mut app::BattleObjectModuleAccessor, fighter
 
 
 unsafe fn actions_out_of_js(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32, situation_kind: i32, cat1: i32) {
-    if status_kind == *FIGHTER_STATUS_KIND_JUMP_SQUAT && situation_kind == *SITUATION_KIND_GROUND 
+    if status_kind == *FIGHTER_STATUS_KIND_JUMP_SQUAT && situation_kind == *SITUATION_KIND_GROUND
     {
 
         // if you are in js, input grab, and you weren't previously shielding - transition to grab
-        if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH) 
-           && ![*FIGHTER_STATUS_KIND_GUARD, *FIGHTER_STATUS_KIND_GUARD_ON, *FIGHTER_STATUS_KIND_GUARD_OFF].contains(&StatusModule::prev_status_kind(boma, 0)) 
+        if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH)
+           && ![*FIGHTER_STATUS_KIND_GUARD, *FIGHTER_STATUS_KIND_GUARD_ON, *FIGHTER_STATUS_KIND_GUARD_OFF].contains(&StatusModule::prev_status_kind(boma, 0))
            && !ItemModule::is_have_item(boma, 0)
         {
             WorkModule::set_flag(boma, true, *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_ATTACK_DISABLE_MINI_JUMP_ATTACK);
@@ -110,9 +117,9 @@ unsafe fn actions_out_of_js(boma: &mut app::BattleObjectModuleAccessor, status_k
         }
 
         // if you input airdodge and stick is below the netural y position - transition to airdodge
-        else if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE) 
-                && ControlModule::get_stick_y(boma) <= 0.0 
-                && !compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH) 
+        else if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE)
+                && ControlModule::get_stick_y(boma) <= 0.0
+                && !compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH)
         {
             StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_ESCAPE_AIR, true);
         }
@@ -121,7 +128,7 @@ unsafe fn actions_out_of_js(boma: &mut app::BattleObjectModuleAccessor, status_k
 }
 
 unsafe fn shield_stops(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32) {
-    if ( status_kind == *FIGHTER_STATUS_KIND_DASH || status_kind == *FIGHTER_STATUS_KIND_TURN_DASH ) && 
+    if ( status_kind == *FIGHTER_STATUS_KIND_DASH || status_kind == *FIGHTER_STATUS_KIND_TURN_DASH ) &&
         ( ControlModule::check_button_trigger(boma, *CONTROL_PAD_BUTTON_GUARD) && ControlModule::check_button_off(boma, *CONTROL_PAD_BUTTON_CATCH) )
     {
         StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_GUARD_ON, true);
@@ -148,11 +155,11 @@ unsafe fn jump_cancel_grab(boma: &mut app::BattleObjectModuleAccessor, cat1: i32
 
     if status_kind == *FIGHTER_STATUS_KIND_GUARD || status_kind == *FIGHTER_STATUS_KIND_GUARD_ON {
 
-        let is_input_shield_drop = 
+        let is_input_shield_drop =
         (compare_cat(ControlModule::get_pad_flag(boma), *FIGHTER_PAD_FLAG_SPECIAL_TRIGGER) && !is_no_special_button_pass_char)
         ||
-        ( 
-            compare_cat(cat2, *FIGHTER_PAD_CMD_CAT2_FLAG_GUARD_TO_PASS) 
+        (
+            compare_cat(cat2, *FIGHTER_PAD_CMD_CAT2_FLAG_GUARD_TO_PASS)
             || (ControlModule::get_flick_y(boma) <= SHIELD_DROP_FLICK_SENS && ControlModule::get_stick_y(boma) <= SHIELD_DROP_STICK_THRESHOLD)
         );
 
@@ -203,9 +210,9 @@ unsafe fn single_button_smash_attacks(boma: &mut app::BattleObjectModuleAccessor
 const PIVOT_STICK_SNAPBACK_WINDOW: f32 = 1.0;
 const LIL_BOOSTIE: smash::phx::Vector3f = smash::phx::Vector3f {x: 1.6, y: 0.0, z: 0.0};
 unsafe fn pivots(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32, curr_frame: f32, stick_value_x: f32){
-    if status_kind == *FIGHTER_STATUS_KIND_TURN_DASH 
-        && curr_frame <= PIVOT_STICK_SNAPBACK_WINDOW && stick_value_x == 0.0 
-        && [*FIGHTER_STATUS_KIND_TURN_DASH, *FIGHTER_STATUS_KIND_DASH].contains(&StatusModule::prev_status_kind(boma, 0)) 
+    if status_kind == *FIGHTER_STATUS_KIND_TURN_DASH
+        && curr_frame <= PIVOT_STICK_SNAPBACK_WINDOW && stick_value_x == 0.0
+        && [*FIGHTER_STATUS_KIND_TURN_DASH, *FIGHTER_STATUS_KIND_DASH].contains(&StatusModule::prev_status_kind(boma, 0))
         && ![*FIGHTER_STATUS_KIND_WAIT, *FIGHTER_STATUS_KIND_TURN].contains(&StatusModule::prev_status_kind(boma, 1))
     {
         PostureModule::reverse_lr(boma);
