@@ -4,6 +4,10 @@ use smashline::*;
 
 use hdr_modules::consts::{*, globals::*};
 use hdr_modules::*;
+
+use crate::vars::custom_vars::*;
+
+use crate::utils::*;
 // use hdr_core::modules::VarModule;
 // use hdr_modules::consts::*;
 // use hdr_core::debugln;
@@ -104,12 +108,7 @@ unsafe fn status_JumpSquat_Main(fighter: &mut L2CFighterCommon) -> L2CValue {
 
     // begin testing for transitions out of jump squat
     let situation_kind = fighter.global_table[SITUATION_KIND].get_i32();
-    if WorkModule::is_enable_transition_term(fighter.module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH) {
-        fighter.change_status(
-            L2CValue::I32(*FIGHTER_STATUS_KIND_CATCH),
-            L2CValue::Bool(true)
-        );
-    } else if WorkModule::is_enable_transition_term(fighter.module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR) {
+    if WorkModule::is_enable_transition_term(fighter.module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR) {
         println!("can airdodge js");
         fighter.change_status(
             L2CValue::I32(*FIGHTER_STATUS_KIND_ESCAPE_AIR), // We don't want to change to ESCAPE_AIR_SLIDE in case they do a nair dodge
@@ -169,12 +168,13 @@ unsafe fn status_exec_JumpSquat(fighter: &mut L2CFighterCommon) -> L2CValue {
 // common jumpsquat subroutine -- to be called by each fighter before transitioning to a custom main status
 #[hook(module = "common", symbol = "_ZN7lua2cpp16L2CFighterCommon23status_JumpSquat_commonEN3lib8L2CValueE")]
 unsafe fn status_JumpSquat_common(fighter: &mut L2CFighterCommon, lr_update: L2CValue) {
+    let id = VarModule::get_int(fighter.module_accessor, common::COSTUME_SLOT_NUMBER) as usize;
     let is_button_jump = WorkModule::get_int(fighter.module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_STICK_JUMP_COMMAND_LIFE) == 0
                                 || fighter.global_table[FLICK_Y_DIR].get_i32() <= 0;
     if is_button_jump {
         WorkModule::on_flag(fighter.module_accessor, *FIGHTER_STATUS_JUMP_FLAG_BUTTON);
         // check if we are doing double button shorthop input
-        if ControlModule::is_jump_mini_button(fighter.module_accessor) {
+        if ControlModule::is_jump_mini_button(fighter.module_accessor) || ([*FIGHTER_STATUS_KIND_ATTACK, *FIGHTER_STATUS_KIND_ATTACK_100, *FIGHTER_STATUS_KIND_ATTACK_DASH, *FIGHTER_STATUS_KIND_ATTACK_HI3, *FIGHTER_STATUS_KIND_ATTACK_LW3, *FIGHTER_STATUS_KIND_ATTACK_S3, *FIGHTER_STATUS_KIND_ATTACK_HI4, *FIGHTER_STATUS_KIND_ATTACK_LW4, *FIGHTER_STATUS_KIND_ATTACK_S4, *FIGHTER_STATUS_KIND_ATTACK_S4_HOLD, *FIGHTER_STATUS_KIND_ATTACK_HI4_HOLD, *FIGHTER_STATUS_KIND_ATTACK_LW4_HOLD, *FIGHTER_STATUS_KIND_ATTACK_S4_START, *FIGHTER_STATUS_KIND_ATTACK_HI4_START, *FIGHTER_STATUS_KIND_ATTACK_LW4_START].contains(&StatusModule::prev_status_kind(fighter.module_accessor, 0)) && can_attack_cancel[id]) {
             WorkModule::on_flag(fighter.module_accessor, *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_JUMP_MINI);
         }
     }

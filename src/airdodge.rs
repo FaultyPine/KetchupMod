@@ -30,23 +30,25 @@ unsafe fn status_pre_EscapeAir(fighter: &mut L2CFighterCommon) -> L2CValue {
     let id = VarModule::get_int(fighter.module_accessor, common::COSTUME_SLOT_NUMBER) as usize;
     let stick = app::sv_math::vec2_length(fighter.global_table[STICK_X].get_f32(), fighter.global_table[STICK_Y].get_f32());
 
-    if !VarModule::is_flag(fighter.module_accessor, common::ENABLE_AIR_ESCAPE_MAGNET) && stick >= WorkModule::get_param_float(fighter.module_accessor, hash40("common"), hash40("escape_air_slide_stick")) && fighter.global_table[STICK_Y].get_f32() < 0.0 {
-        VarModule::on_flag(fighter.module_accessor, common::ENABLE_AIR_ESCAPE_MAGNET);
-    }
+    if ![*FIGHTER_STATUS_KIND_DAMAGE, *FIGHTER_STATUS_KIND_DAMAGE_AIR, *FIGHTER_STATUS_KIND_DAMAGE_FLY, *FIGHTER_STATUS_KIND_DAMAGE_FALL].contains(&StatusModule::prev_status_kind(fighter.module_accessor, 0)) {
+        if !VarModule::is_flag(fighter.module_accessor, common::ENABLE_AIR_ESCAPE_MAGNET) && stick >= WorkModule::get_param_float(fighter.module_accessor, hash40("common"), hash40("escape_air_slide_stick")) && fighter.global_table[STICK_Y].get_f32() < 0.0 {
+            VarModule::on_flag(fighter.module_accessor, common::ENABLE_AIR_ESCAPE_MAGNET);
+        }
 
-    if VarModule::is_flag(fighter.module_accessor, common::PERFECT_WAVEDASH) {
-        GroundModule::attach_ground(fighter.module_accessor, false);
-        fighter.change_status(FIGHTER_STATUS_KIND_LANDING.into(), false.into());
-        VarModule::off_flag(fighter.module_accessor, common::PERFECT_WAVEDASH);
-        return 0.into();
-    }
-    VarModule::off_flag(fighter.module_accessor, common::SHOULD_WAVELAND);
-    sub_escape_air_waveland_check(fighter);
-    if VarModule::is_flag(fighter.module_accessor, common::SHOULD_WAVELAND) {
-        force_ground_attach(fighter);
-        fighter.change_status(FIGHTER_STATUS_KIND_LANDING.into(), false.into());
+        if VarModule::is_flag(fighter.module_accessor, common::PERFECT_WAVEDASH) {
+            GroundModule::attach_ground(fighter.module_accessor, false);
+            fighter.change_status(FIGHTER_STATUS_KIND_LANDING.into(), false.into());
+            VarModule::off_flag(fighter.module_accessor, common::PERFECT_WAVEDASH);
+            return 0.into();
+        }
         VarModule::off_flag(fighter.module_accessor, common::SHOULD_WAVELAND);
-        return 0.into();
+        sub_escape_air_waveland_check(fighter);
+        if VarModule::is_flag(fighter.module_accessor, common::SHOULD_WAVELAND) {
+            force_ground_attach(fighter);
+            fighter.change_status(FIGHTER_STATUS_KIND_LANDING.into(), false.into());
+            VarModule::off_flag(fighter.module_accessor, common::SHOULD_WAVELAND);
+            return 0.into();
+        }
     }
 
     // let ground_correct = if VarModule::is_flag(fighter.module_accessor, common::ENABLE_AIR_ESCAPE_MAGNET) {
@@ -122,7 +124,7 @@ unsafe fn status_end_EscapeAir(fighter: &mut L2CFighterCommon) -> L2CValue {
             let progress = current_frame / end_frame;
             let escape_air_frame = WorkModule::get_param_float(fighter.module_accessor, hash40("param_motion"), hash40("landing_frame_escape_air_slide"));
             let escape_air_end_frame = WorkModule::get_param_float(fighter.module_accessor, hash40("param_motion"), hash40("landing_frame_escape_air_slide_max"));
-            let landing_frame = escape_air_frame.lerp(&escape_air_end_frame, &progress);
+            let landing_frame = WorkModule::get_param_float(fighter.module_accessor, hash40("param_motion"), hash40("landing_frame_escape_air_slide_max"));
             WorkModule::set_float(fighter.module_accessor, landing_frame, *FIGHTER_INSTANCE_WORK_ID_FLOAT_LANDING_FRAME);
             let speed_max = WorkModule::get_param_float(fighter.module_accessor, hash40("common"), hash40("escape_air_slide_landing_speed_max"));
             let speed_mul = WorkModule::get_param_float(fighter.module_accessor, hash40("param_motion"), hash40("landing_speed_mul_escape_air_slide"));
@@ -137,7 +139,7 @@ unsafe fn status_end_EscapeAir(fighter: &mut L2CFighterCommon) -> L2CValue {
             lua_args!(fighter, FIGHTER_KINETIC_ENERGY_ID_STOP, speed_x, speed_y);
             app::sv_kinetic_energy::set_speed(fighter.lua_state_agent);
         } else {
-            let landing_frame = WorkModule::get_param_float(fighter.module_accessor, hash40("common"), hash40("landing_frame_escape_air"));
+            let landing_frame = WorkModule::get_param_int(fighter.module_accessor, hash40("common"), hash40("landing_frame_escape_air")) as f32;
             WorkModule::set_float(fighter.module_accessor, landing_frame, *FIGHTER_INSTANCE_WORK_ID_FLOAT_LANDING_FRAME);
         }
         if status_kind == FIGHTER_STATUS_KIND_LANDING {
@@ -322,7 +324,7 @@ unsafe extern "C" fn sub_escape_air_common_main(fighter: &mut L2CFighterCommon) 
         if fighter.sub_escape_air_common_strans_main().get_bool() {
             return L2CValue::Bool(true);
         }
-        if VarModule::is_flag(fighter.module_accessor, common::SHOULD_WAVELAND) {
+        if VarModule::is_flag(fighter.module_accessor, common::SHOULD_WAVELAND) && ![*FIGHTER_STATUS_KIND_DAMAGE, *FIGHTER_STATUS_KIND_DAMAGE_AIR, *FIGHTER_STATUS_KIND_DAMAGE_FLY, *FIGHTER_STATUS_KIND_DAMAGE_FALL].contains(&StatusModule::prev_status_kind(fighter.module_accessor, 0)) {
             // VarModule::off_flag(fighter.module_accessor, common::SHOULD_WAVELAND);
             // GroundModule::attach_ground(fighter.module_accessor, false);
             WorkModule::enable_transition_term(fighter.module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_LANDING);

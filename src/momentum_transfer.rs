@@ -47,7 +47,7 @@ pub unsafe fn status_jump_sub_hook(fighter: &mut L2CFighterCommon, param_2: L2CV
 pub unsafe fn status_attack_air_hook(fighter: &mut L2CFighterCommon, param_1: L2CValue){
     let boma = app::sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     let fighter_kind = get_kind(boma);
-    let jump_speed_x_max = WorkModule::get_param_float(boma, hash40("run_speed_max"), 0) * jump_speed_ratio[get_player_number(boma)];
+    let jump_speed_x_max = WorkModule::get_param_float(boma, hash40("jump_speed_x_max"), 0);
 
     let mut l2c_agent = L2CAgent::new(fighter.lua_state_agent);
     let is_speed_backward = KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN) * PostureModule::lr(boma) < 0.0;
@@ -123,11 +123,12 @@ pub unsafe fn momentum_transfer_helper(fighter: &mut L2CFighterCommon, lua_state
 		VarModule::on_flag(fighter.module_accessor, common::ENABLE_AIR_ESCAPE_MAGNET);
 	}
 
-	if (fighter_kind == *FIGHTER_KIND_PFUSHIGISOU && status_kind == *FIGHTER_PFUSHIGISOU_STATUS_KIND_SPECIAL_LW_STANDBY)
-		|| (fighter_kind == *FIGHTER_KIND_PLIZARDON && status_kind == *FIGHTER_PLIZARDON_STATUS_KIND_SPECIAL_LW_STANDBY)
-		|| (fighter_kind == *FIGHTER_KIND_PZENIGAME && status_kind == *FIGHTER_PZENIGAME_STATUS_KIND_SPECIAL_LW_STANDBY)
-		|| (fighter_kind == *FIGHTER_KIND_EFLAME && status_kind == *FIGHTER_EFLAME_STATUS_KIND_SPECIAL_LW_STANDBY)
-		|| (fighter_kind == *FIGHTER_KIND_ELIGHT && status_kind == *FIGHTER_ELIGHT_STATUS_KIND_SPECIAL_LW_STANDBY) {
+	if (fighter_kind == *FIGHTER_KIND_PFUSHIGISOU && status_kind == *FIGHTER_PFUSHIGISOU_STATUS_KIND_SPECIAL_LW_OUT)
+		|| (fighter_kind == *FIGHTER_KIND_PLIZARDON && status_kind == *FIGHTER_PLIZARDON_STATUS_KIND_SPECIAL_LW_OUT)
+		|| (fighter_kind == *FIGHTER_KIND_PZENIGAME && status_kind == *FIGHTER_PZENIGAME_STATUS_KIND_SPECIAL_LW_OUT)
+		|| (fighter_kind == *FIGHTER_KIND_EFLAME && status_kind == *FIGHTER_EFLAME_STATUS_KIND_SPECIAL_LW_OUT)
+		|| (fighter_kind == *FIGHTER_KIND_ELIGHT && status_kind == *FIGHTER_ELIGHT_STATUS_KIND_SPECIAL_LW_OUT) 
+		|| status_kind == *FIGHTER_STATUS_KIND_REBIRTH {
 		jump_speed_ratio[get_player_number(boma)] = (WorkModule::get_param_float(boma, hash40("jump_speed_x_max"), 0) / WorkModule::get_param_float(boma, hash40("run_speed_max"), 0));
 	}
 
@@ -221,7 +222,7 @@ unsafe fn calc_melee_momentum(boma: &mut BattleObjectModuleAccessor, aerial_atta
     let stick_x = ControlModule::get_stick_x(boma);
     //let x_vel = KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN);
 
-	let jump_speed_x_max = WorkModule::get_param_float(boma, hash40("run_speed_max"), 0) * jump_speed_ratio[id];
+	let jump_speed_x_max = WorkModule::get_param_float(boma, hash40("jump_speed_x_max"), 0);
 
 	/*
 	if [*FIGHTER_KIND_BRAVE, *FIGHTER_KIND_WIIFIT, *FIGHTER_KIND_SHULK].contains(&fighter_kind){

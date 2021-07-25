@@ -15,6 +15,7 @@ pub static mut jump_speed_ratio:       [f32;8]  = [0.0;8];
 pub static mut rar_leniency:           [f32;8]  = [0.0;8];
 pub static mut sh_macro:               [bool;8] = [false;8];
 pub static mut js_vel:                 [f32;8]  = [0.0;8];
+pub static mut can_attack_cancel:      [bool;8] = [true;8];
 
 
 // ------------------- END GENERAL VARS ------------------------- \\

@@ -4,6 +4,9 @@ use smash::hash40;
 use smash::lua2cpp::L2CFighterCommon;
 use crate::utils::*;
 
+use hdr_modules::consts::{*, globals::*};
+use hdr_modules::*;
+
 use crate::vars::custom_vars::*;
 
 pub fn install() {
@@ -104,6 +107,8 @@ unsafe fn handle_game_resets(boma: &mut app::BattleObjectModuleAccessor, fighter
 
 
 unsafe fn actions_out_of_js(boma: &mut app::BattleObjectModuleAccessor, status_kind: i32, situation_kind: i32, cat1: i32) {
+    let id = VarModule::get_int(boma, common::COSTUME_SLOT_NUMBER) as usize;
+
     if status_kind == *FIGHTER_STATUS_KIND_JUMP_SQUAT && situation_kind == *SITUATION_KIND_GROUND
     {
 
@@ -117,13 +122,23 @@ unsafe fn actions_out_of_js(boma: &mut app::BattleObjectModuleAccessor, status_k
         }
 
         // if you input airdodge and stick is below the netural y position - transition to airdodge
-        else if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE)
+        /***else if compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE)
                 && ControlModule::get_stick_y(boma) <= 0.0
                 && !compare_cat(cat1, *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH)
         {
             StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_ESCAPE_AIR, true);
-        }
+        }***/
 
+
+
+    }
+    if [*FIGHTER_STATUS_KIND_ATTACK, *FIGHTER_STATUS_KIND_ATTACK_100, *FIGHTER_STATUS_KIND_ATTACK_DASH, *FIGHTER_STATUS_KIND_ATTACK_HI3, *FIGHTER_STATUS_KIND_ATTACK_LW3, *FIGHTER_STATUS_KIND_ATTACK_S3, *FIGHTER_STATUS_KIND_ATTACK_HI4, *FIGHTER_STATUS_KIND_ATTACK_LW4, *FIGHTER_STATUS_KIND_ATTACK_S4, *FIGHTER_STATUS_KIND_ATTACK_S4_HOLD, *FIGHTER_STATUS_KIND_ATTACK_HI4_HOLD, *FIGHTER_STATUS_KIND_ATTACK_LW4_HOLD, *FIGHTER_STATUS_KIND_ATTACK_S4_START, *FIGHTER_STATUS_KIND_ATTACK_HI4_START, *FIGHTER_STATUS_KIND_ATTACK_LW4_START].contains(&StatusModule::status_kind(boma)) {
+        if MotionModule::frame(boma) < 3.0 {
+            can_attack_cancel[id] = true;
+        }
+        else {
+            can_attack_cancel[id] = false;
+        }
     }
 }
 
